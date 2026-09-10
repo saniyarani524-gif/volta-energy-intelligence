@@ -1,0 +1,31 @@
+# data & artifacts (never commit big files)
+data/raw/
+data/processed/
+cache/
+models/
+*.parquet
+*.pkl
+*.joblib
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# env & secrets
+.kaggle/
+kaggle.json
+.env
+
+# notebooks
+.ipynb_checkpoints/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# streamlit
+.streamlit/secrets.toml

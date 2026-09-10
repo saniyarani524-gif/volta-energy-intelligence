@@ -1,0 +1,4 @@
+# local development extras (NOT needed on Streamlit Cloud)
+-r requirements.txt
+kaggle>=1.6
+notebook>=7.0
