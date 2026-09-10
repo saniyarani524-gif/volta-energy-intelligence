@@ -1,4 +1,4 @@
-# ⚡ VOLTA — Energy Market Intelligence & Battery Trading Desk
+#  VOLTA — Energy Market Intelligence & Battery Trading Desk
 
 > Turn market prices, weather and renewables into smarter trading decisions.
 
