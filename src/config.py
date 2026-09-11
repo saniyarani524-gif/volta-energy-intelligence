@@ -67,3 +67,11 @@ XGB_QUANTILE_PARAMS = {
     "max_depth": 5,
 }
 QUANTILES = (0.1, 0.5, 0.9)
+
+# ---------------------------------------------------------------- decisions (Phase 4)
+ACTION_MW_EPS = 5.0          # below this, the hour is HOLD
+UNCERTAINTY_SOFT = 0.25      # (P90-P10)/P50 → cut position in half
+UNCERTAINTY_HARD = 0.45      # cut to 25%
+MIN_POSITION_SCALE = 0.25
+SPIKE_EUR = 90.0             # €/MWh — from Phase 1 spike anatomy
+SPIKE_Z = 2.0                # vs the day's own forecast mean/std
