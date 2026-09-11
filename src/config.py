@@ -25,10 +25,15 @@ TZ = "Europe/Madrid"
 # ---------------------------------------------------------------- battery asset
 BATTERY_POWER_MW = 100.0          # max charge/discharge rate
 BATTERY_CAPACITY_MWH = 200.0      # energy capacity (2h duration asset)
-ROUND_TRIP_EFFICIENCY = 0.88      # losses: charge_eff * discharge_eff
+ROUND_TRIP_EFFICIENCY = 0.88      # charge_eff * discharge_eff (split equally: sqrt)
 MIN_SOC_PCT = 0.10                # floor state of charge
-MAX_CYCLES_PER_DAY = 1.0          # degradation constraint v1
-DEGRADATION_COST_EUR_PER_MWH = 3.0  # throughput cost (v1 assumption)
+MAX_CYCLES_PER_DAY = 1.0          # degradation / warranty constraint v1
+DEGRADATION_COST_EUR_PER_MWH = 3.0  # € per MWh discharged to the grid (assumption)
+
+# Economics — 2018-era turnkey Li-ion, not 2024 pack prices. Interview will ask.
+BATTERY_CAPEX_EUR_PER_KWH = 350.0
+WACC = 0.07
+ASSET_LIFE_YEARS = 15
 
 # ---------------------------------------------------------------- market
 CITY_WEIGHTS = {  # population-weighted weather aggregation (approx, 5 cities)

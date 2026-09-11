@@ -107,6 +107,21 @@ def walk_forward_monthly(
     return pd.concat(pieces).sort_index()
 
 
+def walk_forward_years(
+    frame: pd.DataFrame,
+    feature_cols: list[str] | tuple[str, ...],
+    target: str,
+    years: tuple[int, ...] = (2016, 2017, 2018),
+    params: dict | None = None,
+) -> pd.DataFrame:
+    """Expanding-window forecasts for several years (2015 is burn-in)."""
+    parts = [
+        walk_forward_monthly(frame, feature_cols, target, year=y, params=params)
+        for y in years
+    ]
+    return pd.concat(parts).sort_index()
+
+
 def save_xgb(model: XGBRegressor, name: str) -> Path:
     MODELS.mkdir(parents=True, exist_ok=True)
     path = MODELS / name
