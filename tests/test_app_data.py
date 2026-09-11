@@ -49,3 +49,13 @@ def test_cards_schema_or_skip():
     for col in ("action", "mw", "why", "flags", "expected_eur"):
         assert col in c.columns
     assert set(c["action"]).issubset({"CHARGE", "DISCHARGE", "HOLD"})
+
+
+def test_finder_sees_sandbox_parquet():
+    from src.market_io import find_file, market_parquet
+
+    p = market_parquet()
+    assert p is not None, "sandbox should have data/processed/market.parquet"
+    assert p.name == "market.parquet"
+    fc = find_file("cache", "test_2018_forecasts.parquet")
+    assert fc is not None

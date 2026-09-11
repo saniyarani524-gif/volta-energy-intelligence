@@ -19,6 +19,7 @@ from src.config import (
     ROUND_TRIP_EFFICIENCY,
     TAGLINE,
 )
+from src.market_io import market_parquet, searched_market_paths
 
 BG = "#0B0E13"
 PANEL = "#10141B"
@@ -222,58 +223,92 @@ def apply_layout(fig: go.Figure, height: int = 360, **kwargs) -> go.Figure:
 
 
 def chart(fig: go.Figure) -> None:
-    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+    try:
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    except Exception as exc:
+        st.exception(exc)
 
 
-@st.cache_data(show_spinner=False)
+def table(df, **kwargs) -> None:
+    try:
+        st.dataframe(df, use_container_width=True, **kwargs)
+    except Exception:
+        st.dataframe(df, **kwargs)
+
+
 def market() -> pd.DataFrame | None:
+    # Do not cache None — a first run before unzip would poison the session.
     return app_data.read_market()
 
 
-@st.cache_data(show_spinner=False)
 def forecasts_2018() -> pd.DataFrame | None:
     return app_data.read_forecasts_2018()
 
 
-@st.cache_data(show_spinner=False)
 def walkforward() -> pd.DataFrame | None:
     return app_data.read_walkforward()
 
 
-@st.cache_data(show_spinner=False)
 def cards() -> pd.DataFrame | None:
     return app_data.read_cards()
 
 
-@st.cache_data(show_spinner=False)
 def dispatch_daily() -> pd.DataFrame | None:
     return app_data.read_dispatch_daily()
 
 
-@st.cache_data(show_spinner=False)
 def dispatch_hourly_perfect() -> pd.DataFrame | None:
     return app_data.read_dispatch_hourly_perfect()
 
 
-@st.cache_data(show_spinner=False)
 def importance() -> pd.Series | None:
     return app_data.feature_importance()
 
 
+def tape() -> pd.DataFrame | None:
+    """Full 2015–18 market, else the 2018 forecast cache so Command still opens."""
+    m = market()
+    if m is not None and not m.empty:
+        return m
+    fc = forecasts_2018()
+    if fc is not None and not fc.empty:
+        return fc
+    return None
+
+
+def doctor_box() -> None:
+    from src.app_data import READ_ERRORS
+    from src.doctor import report
+
+    empty = market_parquet() is None and forecasts_2018() is None
+    with st.expander("Desk doctor · why a page is empty", expanded=empty or bool(READ_ERRORS)):
+        st.code(report(), language="text")
+        status = app_data.data_status()
+        if status.get("raw_csvs") and market_parquet() is None:
+            if st.button("Build market.parquet from data/raw", type="primary"):
+                with st.spinner("Cleaning 35,064 hours · one-time pass…"):
+                    out = app_data.try_build_market()
+                st.success(f"Wrote {out}")
+                st.rerun()
+        st.caption("In the repo:  python -m src.doctor")
+
+
 def need(df: pd.DataFrame | None, what: str, notebook: str) -> pd.DataFrame:
-    if df is None or df.empty:
-        callout(
-            f"Missing <b>{what}</b>. Run <span class='mono'>{notebook}</span> from the repo root, "
-            f"then refresh. The desk never invents a number.",
-            "warn",
-        )
-        st.stop()
-    return df
+    if df is not None and not df.empty:
+        return df
+    callout(
+        f"Could not load <b>{what}</b>. Open <i>Desk doctor</i> — usually Streamlit "
+        f"was started outside the repo, or <span class='mono'>pyarrow</span> is missing.",
+        "warn",
+    )
+    doctor_box()
+    st.stop()
+    raise RuntimeError("unreachable")
 
 
 def desk_day() -> date:
     """Sidebar date that every page shares."""
-    mkt = market()
+    mkt = tape()
     span = app_data.available_days(mkt)
     fallback = app_data.DEFAULT_DAY
     if span is not None:
@@ -329,6 +364,8 @@ def desk_day() -> date:
             f"{k.replace('_', ' ')} {'✓' if v else '✗'}" for k, v in status.items()
         )
         st.caption(bits)
+        mp = market_parquet()
+        st.caption("market → " + (str(mp) if mp else "NOT FOUND"))
 
     day = st.session_state.desk_day
     if hasattr(day, "date"):

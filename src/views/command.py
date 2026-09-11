@@ -17,14 +17,15 @@ from src.ui import (
     chart,
     cards as load_cards,
     dispatch_daily,
+    doctor_box,
     forecasts_2018,
     fmt_eur,
     fmt_eur_k,
     hero,
     kpis,
     market as load_market,
-    need,
     page_boot,
+    tape,
 )
 from src.app_data import slice_day
 
@@ -53,7 +54,22 @@ def _day_cards(day):
 
 def render() -> None:
     day = page_boot()
-    mkt = need(load_market(), "market.parquet", "notebooks/01_eda.ipynb")
+    mkt = tape()
+    if mkt is None:
+        hero(
+            "01 · Command",
+            "⚡ VOLTA trading desk",
+            "The tape is not on disk yet. The doctor below says exactly why.",
+        )
+        doctor_box()
+        return
+    if load_market() is None:
+        callout(
+            "Full 2015–18 <span class='mono'>market.parquet</span> not found. "
+            "Showing the 2018 forecast cache so the desk still opens. Pulse / Stack need the full tape.",
+            "warn",
+        )
+        doctor_box()
     day_mkt = slice_day(mkt, day)
 
     hero(

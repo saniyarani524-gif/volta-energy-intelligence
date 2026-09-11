@@ -90,7 +90,7 @@ def render() -> None:
         apply_layout(fig, height=420, title="Monthly generation mix (GW) — coal gives way to gas")
         fig.update_yaxes(title="GW", range=[0, 32])
         chart(fig)
-        st.dataframe(twh.round(1), width="stretch")
+        st.dataframe(twh.round(1), use_container_width=True)
         callout(
             "A stack that is more CCGT-heavy is <b>more</b> marginal-price volatile, not less. "
             "Gas-on-the-margin hours are exactly the hours with a fat intra-day spread. "
@@ -150,7 +150,7 @@ def render() -> None:
         show = show.rename(columns={
             "price_actual": "€/MWh", "gen_wind": "wind MW", "gen_gas": "gas MW", "load_actual": "load MW",
         })
-        st.dataframe(show.set_index("when").round(1), width="stretch")
+        st.dataframe(show.set_index("when").round(1), use_container_width=True)
         callout(
             "January 2017, weekdays, gas running hard. A 2-hour battery that can charge overnight "
             "and hit 19:00–21:00 is exactly the shape of these hours. Phase 4 flags them SPIKE "

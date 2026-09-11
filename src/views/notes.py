@@ -99,7 +99,7 @@ def render() -> None:
     }
     st.dataframe(
         pd.Series({k: str(v) for k, v in cfg.items()}, name="value"),
-        width="stretch",
+        use_container_width=True,
     )
 
     st.markdown("<div class='eyebrow'>Reproduce</div>", unsafe_allow_html=True)

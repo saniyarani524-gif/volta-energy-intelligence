@@ -152,7 +152,7 @@ def render() -> None:
             "MWh out": round(s.discharge_mw.sum(), 1),
             "cycles": round(s.discharge_mw.sum() / DEFAULT_BATTERY.capacity_mwh, 2),
         })
-    st.dataframe(pd.DataFrame(rows).set_index("policy"), width="stretch")
+    st.dataframe(pd.DataFrame(rows).set_index("policy"), use_container_width=True)
 
     callout(
         "<b>Assumptions an interviewer will ask.</b> η_c = η_d = √0.88 ≈ 0.938 (losses split equally). "

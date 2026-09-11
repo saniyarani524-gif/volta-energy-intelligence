@@ -165,4 +165,4 @@ def render() -> None:
     show_cols = [c for c in
                  ["action", "mw", "price_p50", "confidence", "expected_eur", "flags", "why", "rank"]
                  if c in cards.columns]
-    st.dataframe(cards[show_cols], width="stretch", height=320)
+    st.dataframe(cards[show_cols], use_container_width=True, height=320)

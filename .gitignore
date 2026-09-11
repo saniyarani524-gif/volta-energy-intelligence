@@ -1,17 +1,29 @@
-# data & artifacts (never commit big files)
-data/raw/
-data/processed/
-cache/
+# data & artifacts
+data/raw/*
+!data/raw/README.md
 models/
-*.parquet
 *.pkl
 *.joblib
+
+# raw dumps stay out; the tidy tape the Streamlit desk needs is allowed
+# (market.parquet ~2.7 MB + cache parquets — required for Cloud)
+data/processed/*
+!data/processed/market.parquet
+!data/processed/README.md
+cache/*
+!cache/*.parquet
 
 # python
 __pycache__/
 *.pyc
 .venv/
 venv/
+
+# local jupyter / kernel junk (never commit)
+.cache/
+.ipython/
+.jupyter/
+.local/
 
 # env & secrets
 .kaggle/

@@ -142,4 +142,4 @@ def render() -> None:
 
     by_year = mkt.groupby(mkt.index.year)["price_actual"].agg(["mean", "std", "min", "max"])
     by_year.columns = ["mean €", "std", "min", "max"]
-    st.dataframe(by_year.round(2), width="stretch")
+    st.dataframe(by_year.round(2), use_container_width=True)

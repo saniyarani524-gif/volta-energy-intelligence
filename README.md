@@ -1,72 +1,91 @@
 # VOLTA — Energy Market Intelligence & Battery Trading Desk
 
-> Turn market prices, weather and renewables into smarter trading decisions.
+Turn Spanish day-ahead prices into CHARGE / DISCHARGE / HOLD cards — and prove a
+€70m battery still does not pay back.
 
-Portfolio project: **real** electricity market data (Spain, ENTSO-E / Red Eléctrica, 2015–2018,
-via Kaggle) → day-ahead price forecasting benchmarked against the grid operator's own forecast →
-battery arbitrage optimizer (100 MW / 200 MWh) → explainable trading decisions → 9-page Streamlit
-control-room UI.
+**Clone → `pip install -r requirements.txt` → `streamlit run app.py`.**
+The tidy 2015–18 tape and 2018 caches are in this repo. You do not need Kaggle
+to open the desk.
 
-**Status:** Phase 5 — 9-page desk. Numbers come from notebooks 01–04. The battery does **not** pay
-back on 2015–18 Spanish spreads; that sentence is the product.
+| 2018 test (temporal split) | Number |
+|---|---|
+| Hours in the tape | 35,064 (2015-01-01 → 2018-12-31, Europe/Madrid) |
+| TSO day-ahead price MAE | **€8.86** |
+| VOLTA XGBoost MAE | **€3.69** (−58% vs TSO) |
+| Walk-forward MAE | €3.49 |
+| 2016–18 VOLTA settled P&L | **€1.64m** (~80% of perfect foresight) |
+| Perfect-foresight 2015–18 | €3.13m (~€784k / year) |
+| Payback / NPV @ €350/kWh, 7% WACC | **89 years · −€62.9m** |
+| 2018 actions | 669 CHARGE · 651 DISCHARGE · 7,440 HOLD |
+| Days sat out | 52 (spread < round-trip + €3) |
 
-## Live app
+The last two rows are the product: a desk that holds, not a Kaggle loop that always trades.
+
+## Run the desk
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-streamlit run app.py
+git clone https://github.com/saniyarani524-gif/volta-energy-intelligence.git
+cd volta-energy-intelligence
+python3 -m pip install -r requirements.txt
+python3 -m src.doctor
+python3 -m streamlit run app.py
 ```
 
-Needs `data/processed/market.parquet` (notebook 01). Forecast / dispatch / card pages light up
-after notebooks 02–04. The desk never invents a number.
+Doctor must print `read market: (35064, 28)`. Then open http://localhost:8501.
 
-| Page | What it is |
-|---|---|
-| Command | Replay desk · selected day · top cards |
-| Cards | CHARGE / DISCHARGE / HOLD with why, confidence, flags |
-| Dispatch | Daily LP · VOLTA P50 vs TSO vs perfect foresight |
-| Pulse | Four years of spot, load, hour × month heatmap |
-| Stack | Duck curve, merit order, spike anatomy, generation mix |
-| Forecast | Beat the TSO on price · quantile band · leakage-safe features |
-| Ledger | Settled P&L · capex / NPV / payback (honest) |
-| Risk | Day-level scale · flags · live what-if battery |
-| Notes | Assumptions, leakage contract, config, how to reproduce |
+## Pages (left sidebar)
 
-## Data
-
-| File | Rows | Contents |
+| Group | Page | What it proves |
 |---|---|---|
-| `data/raw/energy_dataset.csv` | 35,064 × 29 | hourly price (€/MWh), load, TSO forecasts, generation by 20+ sources (2015–2018) |
-| `data/raw/weather_features.csv` | 178,396 × 17 | hourly weather for Madrid, Barcelona, Valencia, Seville, Bilbao |
+| Desk | **Command** | Selected day, top cards, € expected |
+| Desk | **Cards** | CHARGE / DISCHARGE / HOLD · why · confidence |
+| Desk | **Dispatch** | Daily LP · SOC · VOLTA vs TSO vs perfect |
+| Market | **Pulse** | 4-year spot, load, hour × month |
+| Market | **Stack** | Duck curve, merit order, Jan-2017 spikes |
+| Market | **Forecast** | Beat the TSO · P10–P90 band |
+| Results | **Ledger** | Settled P&L · **does not pay back** |
+| Results | **Risk** | Day-level scale · 52 days sat out |
+| Results | **Notes** | Assumptions, leakage contract, config |
 
-Source: [Kaggle — Hourly energy demand, generation and weather](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather) (CC0).
-Data files are git-ignored — they stay local.
+## Pipeline (audit trail)
 
-## Structure
+Each notebook writes artifacts the next notebook and the desk consume.
+
+1. `notebooks/01_eda.ipynb` — tidy 35,064 × 28 parquet, duck curve, merit order, TSO gap
+2. `notebooks/02_forecasting.ipynb` — leakage-safe 24h-ahead XGB vs TSO vs naive-24h
+3. `notebooks/03_dispatch.ipynb` — 100 MW / 200 MWh daily LP, settle on realised spot
+4. `notebooks/04_decisions.ipynb` — cards with why, day-level risk scale, flags
 
 ```
-app.py                 Streamlit entry · 9-page navigation
-src/ui.py              design system (teal / amber on near-black)
-src/app_data.py        parquet loaders — return None if a notebook has not been run
-src/views/             one render() per page
-src/config.py          battery, splits, decision thresholds
-src/features.py        leakage-safe 24h-ahead feature contract
-src/models.py          MAE / XGB / walk-forward
-src/optimizer.py       daily LP + settle + economics
-src/decisions.py       CHARGE / DISCHARGE / HOLD cards
-notebooks/             01 EDA · 02 forecast · 03 dispatch · 04 decisions
-tests/                 unit + smoke
+pytest -q          # 24 tests: features, LP invariants, cards, loaders
+python -m src.doctor
 ```
 
-## Roadmap
+Re-running 01–04 from raw CSVs is optional. Drop the Kaggle files into
+`data/raw/` (see `data/raw/README.md`). Raw CSVs are **not** in git (~25 MB).
 
-1. **Foundations** — tidy hourly frame, duck curve, merit order, spike taxonomy
-2. **Forecasting** — XGBoost day-ahead price vs TSO, quantile bands, walk-forward
-3. **Optimization** — LP dispatch, 3-year € P&L, degradation, project finance
-4. **Decisions** — explainable cards, day-level risk scale, flags
-5. **Product** — this 9-page desk
+## What is in git vs not
+
+| In the repo | Not in the repo |
+|---|---|
+| `data/processed/market.parquet` (2.7 MB) | `data/raw/*.csv` |
+| `cache/*.parquet` (2016–18 forecasts, dispatch, 2018 cards) | `models/*.json` (rebuild from nb 02) |
+| notebooks 01–04 + `notebooks/figures/` | secrets / `kaggle.json` |
+
+## Rules we did not break
+
+- Temporal splits only. Never shuffle a time series.
+- Realised price / load / generation may only enter as a lag ≥ 24 h.
+- Day-level risk scale only (hour-level MW edits break SOC).
+- SPIKE is a flag, not a silent rewrite.
+- Every number in this README regenerates from notebooks 01→04.
+
+## Stack
+
+Python · pandas · XGBoost · scipy.linprog · Plotly · Streamlit · pytest
+
+Data: [Hourly energy demand, generation and weather](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather) (Spain ENTSO-E / REE + 5-city weather, CC0).
 
 ---
-Built by **Saniya** · every number from public real market data (CC0).
+
+Built by **Saniya** · public market data (CC0) · the battery does not pay back, and we say so.

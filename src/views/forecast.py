@@ -63,7 +63,7 @@ def render() -> None:
     apply_layout(fig, height=320, title="2018 price MAE €/MWh — temporal split, no shuffle")
     fig.update_yaxes(title="MAE", range=[0, tbl["MAE"].max() * 1.3])
     chart(fig)
-    st.dataframe(tbl.round(2), width="stretch")
+    st.dataframe(tbl.round(2), use_container_width=True)
 
     tab_zoom, tab_q, tab_err, tab_imp = st.tabs(
         ["Two-week zoom", "Quantile band", "Error by hour", "Importance"]
