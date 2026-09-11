@@ -7,7 +7,7 @@ via Kaggle) → day-ahead price forecasting benchmarked against the grid operato
 battery arbitrage optimizer (100 MW / 200 MWh) → explainable trading decisions → Streamlit
 control-room UI.
 
-**Status:** 🚧 Week 1 of 12 — data acquisition ✓ · app shell live
+**Status:** 🚧 Week 1 of 12 — data ✓ · app shell ✓ · Phase 1 EDA ✓ · Phase 2 forecast ✓ (beats TSO on 2018)
 
 ## Live app
 _Deployed on Streamlit Community Cloud — URL lands here after first deploy._
